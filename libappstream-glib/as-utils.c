@@ -1374,6 +1374,25 @@ as_utils_search_tokenize (const gchar *search)
 }
 
 /**
+ * as_utils_convert_version:
+ */
+static gchar *
+as_utils_convert_version (const gchar *version)
+{
+	guint64 tmp;
+
+	/* already dotted decimal */
+	if (g_strstr_len (version, -1, ".") != NULL)
+		return g_strdup (version);
+
+	/* convert */
+	tmp = g_ascii_strtoull (version, NULL, 16);
+	if (tmp < 0xff)
+		return g_strdup (version);
+	return as_utils_int_to_dotted_decimal (tmp);
+}
+
+/**
  * as_utils_vercmp:
  * @version_a: the release version, e.g. 1.2.3
  * @version_b: the release version, e.g. 1.2.3.1
@@ -1393,6 +1412,8 @@ as_utils_vercmp (const gchar *version_a, const gchar *version_b)
 	gint64 ver_b;
 	guint i;
 	guint longest_split;
+	g_autofree gchar *str_a = NULL;
+	g_autofree gchar *str_b = NULL;
 	g_auto(GStrv) split_a = NULL;
 	g_auto(GStrv) split_b = NULL;
 
@@ -1405,8 +1426,10 @@ as_utils_vercmp (const gchar *version_a, const gchar *version_b)
 		return 0;
 
 	/* split into sections, and try to parse */
-	split_a = g_strsplit (version_a, ".", -1);
-	split_b = g_strsplit (version_b, ".", -1);
+	str_a = as_utils_convert_version (version_a);
+	str_b = as_utils_convert_version (version_b);
+	split_a = g_strsplit (str_a, ".", -1);
+	split_b = g_strsplit (str_b, ".", -1);
 	longest_split = MAX (g_strv_length (split_a), g_strv_length (split_b));
 	for (i = 0; i < longest_split; i++) {
 

@@ -3836,6 +3836,10 @@ as_test_utils_vercmp_func (void)
 	/* same */
 	g_assert_cmpint (as_utils_vercmp ("1.2.3", "1.2.3"), ==, 0);
 
+	/* same, not dotted decimal */
+	g_assert_cmpint (as_utils_vercmp ("1.2.3", "10203"), ==, 0);
+	g_assert_cmpint (as_utils_vercmp ("10203", "10203"), ==, 0);
+
 	/* upgrade and downgrade */
 	g_assert_cmpint (as_utils_vercmp ("1.2.3", "1.2.4"), <, 0);
 	g_assert_cmpint (as_utils_vercmp ("1.2.3", "1.2.2"), >, 0);
