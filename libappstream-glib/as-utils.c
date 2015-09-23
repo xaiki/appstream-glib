@@ -1530,3 +1530,37 @@ as_utils_guid_from_string (const gchar *str)
 	g_assert (as_utils_guid_is_valid (tmp));
 	return tmp;
 }
+
+/**
+ * as_utils_int_to_dotted_decimal:
+ * @val: A uint32le version number
+ *
+ * Returns a dotted decimal version string from a 32 bit number.
+ *
+ * Returns: A version number, e.g. "1.0.3"
+ *
+ * Since: 0.5.2
+ **/
+gchar *
+as_utils_int_to_dotted_decimal (guint32 val)
+{
+	GString *str;
+	gboolean valid = FALSE;
+	guint i;
+	guint8 *tmp = (guint8 *) &val;
+
+	/* create version string */
+	str = g_string_sized_new (13);
+	for (i = 0; i < 4; i++) {
+		if (tmp[3 - i] > 0 || i == 3)
+			valid = TRUE;
+		if (valid)
+			g_string_append_printf (str, "%i.", tmp[3 - i]);
+	}
+
+	/* delete trailing dot */
+	if (str->len > 0)
+		g_string_truncate (str, str->len - 1);
+
+	return g_string_free (str, FALSE);
+}

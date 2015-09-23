@@ -125,6 +125,7 @@ gint		 as_utils_vercmp		(const gchar	*version_a,
 						 const gchar	*version_b);
 gboolean	 as_utils_guid_is_valid		(const gchar	*guid);
 gchar		*as_utils_guid_from_string	(const gchar	*str);
+gchar		*as_utils_int_to_dotted_decimal	(guint32	 val);
 
 G_END_DECLS
 

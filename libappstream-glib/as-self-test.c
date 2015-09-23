@@ -3519,6 +3519,23 @@ as_test_utils_func (void)
 	g_assert_cmpstr (tokens[1], ==, "stupid");
 	g_assert_cmpstr (tokens[2], ==, NULL);
 	g_strfreev (tokens);
+
+	/* check version conversion */
+	tmp = as_utils_int_to_dotted_decimal (0x0);
+	g_assert_cmpstr (tmp, ==, "0");
+	g_free (tmp);
+	tmp = as_utils_int_to_dotted_decimal (0xff);
+	g_assert_cmpstr (tmp, ==, "255");
+	g_free (tmp);
+	tmp = as_utils_int_to_dotted_decimal (0xff01);
+	g_assert_cmpstr (tmp, ==, "255.1");
+	g_free (tmp);
+	tmp = as_utils_int_to_dotted_decimal (0xff0001);
+	g_assert_cmpstr (tmp, ==, "255.0.1");
+	g_free (tmp);
+	tmp = as_utils_int_to_dotted_decimal (0xff000100);
+	g_assert_cmpstr (tmp, ==, "255.0.1.0");
+	g_free (tmp);
 }
 
 static void
