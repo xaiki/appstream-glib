@@ -320,17 +320,7 @@ as_release_set_version (AsRelease *release, const gchar *version)
 {
 	AsReleasePrivate *priv = GET_PRIVATE (release);
 	g_free (priv->version);
-
-	/* convert 0x prefixed strings to dotted decimal */
-	if (g_str_has_prefix (version, "0x")) {
-		guint64 tmp;
-		tmp = g_ascii_strtoull (version + 2, NULL, 16);
-		priv->version = as_utils_int_to_dotted_decimal (tmp);
-		return;
-	}
-
-	/* no special rule */
-	priv->version = g_strdup (version);
+	priv->version = as_utils_version_parse (version);
 }
 
 /**

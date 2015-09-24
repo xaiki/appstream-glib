@@ -1374,25 +1374,6 @@ as_utils_search_tokenize (const gchar *search)
 }
 
 /**
- * as_utils_convert_version:
- */
-static gchar *
-as_utils_convert_version (const gchar *version)
-{
-	guint64 tmp;
-
-	/* already dotted decimal */
-	if (g_strstr_len (version, -1, ".") != NULL)
-		return g_strdup (version);
-
-	/* convert */
-	tmp = g_ascii_strtoull (version, NULL, 16);
-	if (tmp < 0xff)
-		return g_strdup (version);
-	return as_utils_int_to_dotted_decimal (tmp);
-}
-
-/**
  * as_utils_vercmp:
  * @version_a: the release version, e.g. 1.2.3
  * @version_b: the release version, e.g. 1.2.3.1
@@ -1426,8 +1407,8 @@ as_utils_vercmp (const gchar *version_a, const gchar *version_b)
 		return 0;
 
 	/* split into sections, and try to parse */
-	str_a = as_utils_convert_version (version_a);
-	str_b = as_utils_convert_version (version_b);
+	str_a = as_utils_version_parse (version_a);
+	str_b = as_utils_version_parse (version_b);
 	split_a = g_strsplit (str_a, ".", -1);
 	split_b = g_strsplit (str_b, ".", -1);
 	longest_split = MAX (g_strv_length (split_a), g_strv_length (split_b));
@@ -1555,7 +1536,7 @@ as_utils_guid_from_string (const gchar *str)
 }
 
 /**
- * as_utils_int_to_dotted_decimal:
+ * as_utils_version_from_uint32:
  * @val: A uint32le version number
  *
  * Returns a dotted decimal version string from a 32 bit number.
@@ -1565,7 +1546,7 @@ as_utils_guid_from_string (const gchar *str)
  * Since: 0.5.2
  **/
 gchar *
-as_utils_int_to_dotted_decimal (guint32 val)
+as_utils_version_from_uint32 (guint32 val)
 {
 	GString *str;
 	gboolean valid = FALSE;
@@ -1586,4 +1567,41 @@ as_utils_int_to_dotted_decimal (guint32 val)
 		g_string_truncate (str, str->len - 1);
 
 	return g_string_free (str, FALSE);
+}
+
+/**
+ * as_utils_version_parse:
+ */
+gchar *
+as_utils_version_parse (const gchar *version)
+{
+	gchar *endptr = NULL;
+	guint64 tmp;
+	guint base;
+	guint i;
+
+	/* already dotted decimal */
+	if (g_strstr_len (version, -1, ".") != NULL)
+		return g_strdup (version);
+
+	/* convert 0x prefixed strings to dotted decimal */
+	if (g_str_has_prefix (version, "0x")) {
+		version += 2;
+		base = 16;
+	} else {
+		/* for non-numeric content, just return the string */
+		for (i = 0; version[i] != '\0'; i++) {
+			if (!g_ascii_isdigit (version[i]))
+				return g_strdup (version);
+		}
+		base = 10;
+	}
+
+	/* convert */
+	tmp = g_ascii_strtoull (version, &endptr, base);
+	if (endptr != NULL && endptr[0] != '\0')
+		return g_strdup (version);
+	if (tmp == 0 || tmp < 0xff)
+		return g_strdup (version);
+	return as_utils_version_from_uint32 (tmp);
 }
