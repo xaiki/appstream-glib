@@ -130,6 +130,7 @@ PKG_CHECK_MODULES(GLIB, glib-2.0 >= 2.45.8 gio-2.0 gobject-2.0 gthread-2.0 gio-u
 PKG_CHECK_MODULES(LIBARCHIVE, libarchive)
 PKG_CHECK_MODULES(SOUP, libsoup-2.4 >= 2.51.92)
 PKG_CHECK_MODULES(GDKPIXBUF, gdk-pixbuf-2.0 >= 2.31.5)
+PKG_CHECK_MODULES(GCAB, libgcab-1.0)
 
 # builder (default enabled)
 AC_ARG_ENABLE(builder, AS_HELP_STRING([--disable-builder],[Disable AppStream builder support]), enable_builder=$enableval)

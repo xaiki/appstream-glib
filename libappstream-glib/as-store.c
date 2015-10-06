@@ -42,6 +42,7 @@
 #include "as-profile.h"
 #include "as-monitor.h"
 #include "as-store.h"
+#include "as-store-cab.h"
 #include "as-utils-private.h"
 #include "as-yaml.h"
 
@@ -1194,6 +1195,10 @@ as_store_from_file (AsStore *store,
 	if (g_strstr_len (filename, -1, ".yml") != NULL)
 		return as_store_load_yaml_file (store, file, icon_root,
 						cancellable, error);
+
+	/* a cab archive */
+	if (g_str_has_suffix (filename, ".cab"))
+		return as_store_cab_from_file (store, file, cancellable, error);
 
 	/* an AppStream XML file */
 	root = as_node_from_file (file,

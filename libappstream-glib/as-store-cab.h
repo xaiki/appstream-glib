@@ -1,6 +1,6 @@
 /* -*- Mode: C; tab-width: 8; indent-tabs-mode: t; c-basic-offset: 8 -*-
  *
- * Copyright (C) 2014 Richard Hughes <richard@hughsie.com>
+ * Copyright (C) 2013-2014 Richard Hughes <richard@hughsie.com>
  *
  * Licensed under the GNU Lesser General Public License Version 2.1
  *
@@ -19,31 +19,29 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301 USA
  */
 
-#ifndef __APPSTREAM_GLIB_H
-#define __APPSTREAM_GLIB_H
+#if !defined (__APPSTREAM_GLIB_H) && !defined (AS_COMPILATION)
+#error "Only <appstream-glib.h> can be included directly."
+#endif
 
-#define __APPSTREAM_GLIB_H_INSIDE__
+#ifndef __AS_STORE_CAB_H
+#define __AS_STORE_CAB_H
 
-#include <as-app.h>
-#include <as-bundle.h>
-#include <as-checksum.h>
-#include <as-enums.h>
-#include <as-icon.h>
-#include <as-image.h>
-#include <as-inf.h>
-#include <as-node.h>
-#include <as-problem.h>
-#include <as-profile.h>
-#include <as-provide.h>
-#include <as-release.h>
-#include <as-screenshot.h>
-#include <as-store.h>
-#include <as-store-cab.h>
-#include <as-tag.h>
-#include <as-version.h>
-#include <as-utils.h>
+#include <glib-object.h>
+#include <gio/gio.h>
 
-#undef __APPSTREAM_GLIB_H_INSIDE__
+#include "as-store.h"
 
-#endif /* __APPSTREAM_GLIB_H */
+G_BEGIN_DECLS
 
+gboolean	 as_store_cab_from_file		(AsStore	*store,
+						 GFile		*file,
+						 GCancellable	*cancellable,
+						 GError		**error);
+gboolean	 as_store_cab_from_fd		(AsStore	*store,
+						 int		 fd,
+						 GCancellable	*cancellable,
+						 GError		**error);
+
+G_END_DECLS
+
+#endif /* __AS_STORE_CAB_H */

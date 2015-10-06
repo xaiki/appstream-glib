@@ -2844,6 +2844,62 @@ as_test_store_merges_local_func (void)
 }
 
 static void
+as_test_store_cab_func (void)
+{
+	gboolean ret;
+	const gchar *src;
+	g_autoptr(GError) error = NULL;
+	g_autoptr(AsStore) store = NULL;
+	g_autoptr(GFile) file = NULL;
+	g_autofree gchar *fn = NULL;
+	g_autoptr(GString) xml = NULL;
+
+	/* parse a .cab file as a store */
+	store = as_store_new ();
+	as_store_set_api_version (store, 0.9);
+	fn = as_test_get_filename ("colorhug-als-2.0.2.cab");
+	g_assert (fn != NULL);
+	file = g_file_new_for_path (fn);
+	ret = as_store_from_file (store, file, NULL, NULL, &error);
+	g_assert_no_error (error);
+	g_assert (ret);
+
+	/* check output */
+	src =
+	"<components version=\"0.9\" origin=\"colorhug-als-2.0.2.cab\">\n"
+	"<component type=\"firmware\">\n"
+	"<id>com.hughski.ColorHug2.firmware</id>\n"
+	"<name>ColorHug Firmware</name>\n"
+	"<summary>Firmware for the ColorHug Colorimeter</summary>\n"
+	"<developer_name>Hughski Limited</developer_name>\n"
+	"<description><p>Updating the firmware on your ColorHug device "
+	"improves performance and adds new features.</p></description>\n"
+	"<project_license>GPL-2.0+</project_license>\n"
+	"<url type=\"homepage\">http://www.hughski.com/</url>\n"
+	"<releases>\n"
+	"<release version=\"2.0.2\" timestamp=\"1424116753\">\n"
+	"<location>http://www.hughski.com/downloads/colorhug2/firmware/colorhug-2.0.2.cab</location>\n"
+	"<description><p>This unstable release adds the following features:</p>"
+	"<ul><li>Add TakeReadingArray to enable panel latency measurements</li>"
+	"<li>Speed up the auto-scaled measurements considerably, using 256ms as"
+	" the smallest sample duration</li></ul></description>\n"
+	"<filename>firmware.bin</filename>\n"
+	"<size type=\"installed\">14</size>\n"
+	"<size type=\"download\">1983</size>\n"
+	"</release>\n"
+	"</releases>\n"
+	"<provides>\n"
+	"<firmware type=\"flashed\">84f40464-9272-4ef7-9399-cd95f12da696</firmware>\n"
+	"</provides>\n"
+	"</component>\n"
+	"</components>\n";
+	xml = as_store_to_xml (store, AS_NODE_TO_XML_FLAG_FORMAT_MULTILINE);
+	ret = as_test_compare_lines (xml->str, src, &error);
+	g_assert_no_error (error);
+	g_assert (ret);
+}
+
+static void
 as_test_store_empty_func (void)
 {
 	gboolean ret;
@@ -4305,6 +4361,7 @@ main (int argc, char **argv)
 	g_log_set_fatal_mask (NULL, G_LOG_LEVEL_ERROR | G_LOG_LEVEL_CRITICAL);
 
 	/* tests go here */
+	g_test_add_func ("/AppStream/store{cab}", as_test_store_cab_func);
 	g_test_add_func ("/AppStream/tag", as_test_tag_func);
 	g_test_add_func ("/AppStream/provide", as_test_provide_func);
 	g_test_add_func ("/AppStream/checksum", as_test_checksum_func);

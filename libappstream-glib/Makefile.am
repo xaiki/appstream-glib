@@ -7,6 +7,7 @@ endif
 
 AM_CPPFLAGS =							\
 	$(GLIB_CFLAGS)						\
+	$(GCAB_CFLAGS)						\
 	$(GDKPIXBUF_CFLAGS)					\
 	$(LIBARCHIVE_CFLAGS)					\
 	$(SOUP_CFLAGS)						\
@@ -81,6 +82,7 @@ libappstream_glib_include_HEADERS =				\
 	as-release.h						\
 	as-screenshot.h						\
 	as-store.h						\
+	as-store-cab.h						\
 	as-tag.h						\
 	as-utils.h						\
 	as-version.h
@@ -119,6 +121,7 @@ libappstream_glib_la_SOURCES =					\
 	as-screenshot.c						\
 	as-screenshot-private.h					\
 	as-store.c						\
+	as-store-cab.c						\
 	as-tag.c						\
 	as-utils.c						\
 	as-utils-private.h					\
@@ -135,6 +138,7 @@ CLEANFILES = $(BUILT_SOURCES)
 
 libappstream_glib_la_LIBADD =					\
 	$(GLIB_LIBS)						\
+	$(GCAB_LIBS)						\
 	$(GDKPIXBUF_LIBS)					\
 	$(LIBARCHIVE_LIBS)					\
 	$(SOUP_LIBS)						\
