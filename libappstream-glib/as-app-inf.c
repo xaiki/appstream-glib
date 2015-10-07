@@ -208,18 +208,13 @@ as_app_parse_inf_file (AsApp *app,
 			     "no SourceDisksFiles or Firmware_CopyFiles");
 		return FALSE;
 	}
-	as_app_add_metadata (app, "FirmwareBasename", firmware_basename);
-
-	/* optional */
-	catalog_basename = g_key_file_get_string (kf, "Version", "CatalogFile", NULL);
-	if (catalog_basename != NULL)
-		as_app_add_metadata (app, "CatalogBasename", catalog_basename);
 
 	/* add a release with no real description */
 	if (version != NULL) {
 		release = as_release_new ();
 		as_release_set_version (release, version);
 		as_release_set_timestamp (release, timestamp);
+		as_release_set_filename (release, firmware_basename);
 		as_app_add_release (app, release);
 	}
 

@@ -2879,6 +2879,8 @@ as_test_store_cab_func (void)
 	"<releases>\n"
 	"<release version=\"2.0.2\" timestamp=\"1424116753\">\n"
 	"<location>http://www.hughski.com/downloads/colorhug2/firmware/colorhug-2.0.2.cab</location>\n"
+	"<checksum target=\"container\" type=\"sha1\">6301e24ae5fb2aa73c336fd40a5d2f1835afe088</checksum>\n"
+	"<checksum target=\"content\" type=\"sha1\">767a8a7b8a7b350b513f57761204b4aaa657aa44</checksum>\n"
 	"<description><p>This unstable release adds the following features:</p>"
 	"<ul><li>Add TakeReadingArray to enable panel latency measurements</li>"
 	"<li>Speed up the auto-scaled measurements considerably, using 256ms as"

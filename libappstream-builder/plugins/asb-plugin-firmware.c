@@ -131,7 +131,7 @@ asb_plugin_firmware_refine (AsbPlugin *plugin,
 	as_release_add_checksum (release, csum);
 
 	/* set the internal checksum */
-	fw_basename = as_app_get_metadata_item (inf, "FirmwareBasename");
+	fw_basename = as_release_get_filename (release);
 	if (fw_basename != NULL) {
 		g_autofree gchar *checksum_bin = NULL;
 		g_autofree gchar *fn_bin = NULL;

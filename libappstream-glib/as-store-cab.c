@@ -43,6 +43,96 @@ as_store_cab_cb (GCabFile *file, gpointer user_data)
 }
 
 /**
+ * as_store_cab_verify_checksum_cab:
+ **/
+static gboolean
+as_store_cab_verify_checksum_cab (AsRelease *release,
+				  GBytes *bytes,
+				  GError **error)
+{
+	AsChecksum *csum_tmp;
+	g_autofree gchar *actual = NULL;
+
+	/* nothing already set, so just add */
+	actual = g_compute_checksum_for_bytes (G_CHECKSUM_SHA1, bytes);
+	csum_tmp = as_release_get_checksum_by_target (release, AS_CHECKSUM_TARGET_CONTAINER);
+	if (csum_tmp == NULL) {
+		g_autoptr(AsChecksum) csum = NULL;
+		csum = as_checksum_new ();
+		as_checksum_set_kind (csum, G_CHECKSUM_SHA1);
+		as_checksum_set_target (csum, AS_CHECKSUM_TARGET_CONTAINER);
+		as_checksum_set_value (csum, actual);
+		as_release_add_checksum (release, csum);
+		return TRUE;
+	}
+
+	/* check it matches */
+	if (g_strcmp0 (actual, as_checksum_get_value (csum_tmp)) != 0) {
+		g_set_error (error,
+			     AS_STORE_ERROR,
+			     AS_STORE_ERROR_FAILED,
+			     "container checksum invalid, expected %s, got %s",
+			     as_checksum_get_value (csum_tmp), actual);
+		return FALSE;
+	}
+
+	/* success */
+	return TRUE;
+}
+
+/**
+ * as_store_cab_verify_checksum_fw:
+ **/
+static gboolean
+as_store_cab_verify_checksum_fw (AsRelease *release,
+				 const gchar *tmp_path,
+				 GError **error)
+{
+	AsChecksum *csum_tmp;
+	g_autofree gchar *rel_basename = NULL;
+	g_autofree gchar *rel_fn = NULL;
+	g_autofree gchar *actual = NULL;
+
+	/* get the firmware filename */
+	rel_basename = g_path_get_basename (as_release_get_filename (release));
+	rel_fn = g_build_filename (tmp_path, rel_basename, NULL);
+
+	/* add this information to the release objects */
+	if (g_file_test (rel_fn, G_FILE_TEST_EXISTS)) {
+		gsize len;
+		g_autofree gchar *data = NULL;
+		if (!g_file_get_contents (rel_fn, &data, &len, error))
+			return NULL;
+		actual = g_compute_checksum_for_data (G_CHECKSUM_SHA1, (guchar *)data, len);
+	}
+
+	/* nothing already set, so just add */
+	csum_tmp = as_release_get_checksum_by_target (release, AS_CHECKSUM_TARGET_CONTENT);
+	if (csum_tmp == NULL) {
+		g_autoptr(AsChecksum) csum = NULL;
+		csum = as_checksum_new ();
+		as_checksum_set_kind (csum, G_CHECKSUM_SHA1);
+		as_checksum_set_target (csum, AS_CHECKSUM_TARGET_CONTENT);
+		as_checksum_set_value (csum, actual);
+		as_release_add_checksum (release, csum);
+		return TRUE;
+	}
+
+	/* check it matches */
+	if (g_strcmp0 (actual, as_checksum_get_value (csum_tmp)) != 0) {
+		g_set_error (error,
+			     AS_STORE_ERROR,
+			     AS_STORE_ERROR_FAILED,
+			     "contents checksum invalid, expected %s, got %s",
+			     as_checksum_get_value (csum_tmp), actual);
+		return FALSE;
+	}
+
+	/* success */
+	return TRUE;
+}
+
+/**
  * as_store_cab_set_release_blobs:
  **/
 static gboolean
@@ -110,25 +200,26 @@ as_store_cab_set_release_blobs (AsRelease *release, const gchar *tmp_path, GErro
 }
 
 /**
- * as_store_cab_from_stream:
+ * as_store_cab_from_bytes:
  **/
-static gboolean
-as_store_cab_from_stream (AsStore *store,
-			  GInputStream *input_stream,
-			  guint64 size,
-			  GCancellable *cancellable,
-			  GError **error)
+gboolean
+as_store_cab_from_bytes (AsStore *store,
+			 GBytes *bytes,
+			 GCancellable *cancellable,
+			 GError **error)
 {
 	g_autoptr(GCabCabinet) gcab = NULL;
 	g_autoptr(GError) error_local = NULL;
 	g_autofree gchar *tmp_path = NULL;
 	g_autoptr(GFile) tmp_file = NULL;
+	g_autoptr(GInputStream) input_stream = NULL;
 	g_autoptr(GPtrArray) filelist = NULL;
 	g_autoptr(GPtrArray) apps = NULL;
 	guint i;
 
 	/* open the file */
 	gcab = gcab_cabinet_new ();
+	input_stream = g_memory_input_stream_new_from_bytes (bytes);
 	if (!gcab_cabinet_load (gcab, input_stream, NULL, &error_local)) {
 		g_set_error (error,
 			     AS_STORE_ERROR,
@@ -176,47 +267,46 @@ as_store_cab_from_stream (AsStore *store,
 		g_debug ("found file %i\t%s", i, fn);
 
 		/* if inf or metainfo, add */
-		switch (as_app_guess_source_kind (fn)) {
-		case AS_APP_SOURCE_KIND_METAINFO:
-			tmp_fn = g_build_filename (tmp_path, fn, NULL);
-			app = as_app_new ();
-			if (!as_app_parse_file (app, tmp_fn,
-						AS_APP_PARSE_FLAG_NONE, &error_local)) {
-				g_set_error (error,
+		if (as_app_guess_source_kind (fn) != AS_APP_SOURCE_KIND_METAINFO)
+			continue;
+
+		tmp_fn = g_build_filename (tmp_path, fn, NULL);
+		app = as_app_new ();
+		if (!as_app_parse_file (app, tmp_fn,
+					AS_APP_PARSE_FLAG_NONE, &error_local)) {
+			g_set_error (error,
+				     AS_STORE_ERROR,
+				     AS_STORE_ERROR_FAILED,
+				     "%s could not be loaded: %s",
+				     tmp_fn,
+				     error_local->message);
+			return FALSE;
+		}
+
+		/* check release was valid */
+		rel = as_app_get_release_default (app);
+		if (rel == NULL) {
+			g_set_error_literal (error,
 					     AS_STORE_ERROR,
 					     AS_STORE_ERROR_FAILED,
-					     "%s could not be loaded: %s",
-					     tmp_fn,
-					     error_local->message);
-				return FALSE;
-			}
-
-			/* check release was valid */
-			rel = as_app_get_release_default (app);
-			if (rel == NULL) {
-				g_set_error_literal (error,
-						     AS_STORE_ERROR,
-						     AS_STORE_ERROR_FAILED,
-						     "no releases in metainfo file");
-				return FALSE;
-			}
-
-			/* fix up legacy files */
-			if (as_release_get_filename (rel) == NULL)
-				as_release_set_filename (rel, "firmware.bin");
-
-			/* this is the size of the cab file itself */
-			if (size > 0 && as_release_get_size (rel, AS_SIZE_KIND_DOWNLOAD) == 0)
-				as_release_set_size (rel, AS_SIZE_KIND_DOWNLOAD, size);
-
-			g_ptr_array_add (apps, g_object_ref (app));
-			break;
-		case AS_APP_SOURCE_KIND_INF:
-			/* FIXME: can we handle this? */
-			break;
-		default:
-			break;
+					     "no releases in metainfo file");
+			return FALSE;
 		}
+
+		/* fix up legacy files */
+		if (as_release_get_filename (rel) == NULL)
+			as_release_set_filename (rel, "firmware.bin");
+
+		/* this is the size of the cab file itself */
+		if (as_release_get_size (rel, AS_SIZE_KIND_DOWNLOAD) == 0)
+			as_release_set_size (rel, AS_SIZE_KIND_DOWNLOAD,
+					     g_bytes_get_size (bytes));
+
+		/* set the container checksum */
+		if (!as_store_cab_verify_checksum_cab (rel, bytes, error))
+			return FALSE;
+
+		g_ptr_array_add (apps, g_object_ref (app));
 	}
 
 	/* add firmware blobs referenced by the metainfo or inf files */
@@ -228,6 +318,8 @@ as_store_cab_from_stream (AsStore *store,
 			AsRelease *rel = g_ptr_array_index (releases, j);
 			if (!as_store_cab_set_release_blobs (rel, tmp_path, error))
 				return FALSE;
+			if (!as_store_cab_verify_checksum_fw (rel, tmp_path, error))
+				return FALSE;
 		}
 	}
 
@@ -235,6 +327,63 @@ as_store_cab_from_stream (AsStore *store,
 	for (i = 0; i < apps->len; i++) {
 		AsApp *app_tmp = AS_APP (g_ptr_array_index (apps, i));
 		as_store_add_app (store, app_tmp);
+	}
+
+	/* if we provided an .inf file check the values matched */
+	for (i = 0; i < filelist->len; i++) {
+		AsApp *app_tmp;
+		AsRelease *rel_inf;
+		AsRelease *rel_metainfo;
+		const gchar *fn;
+		g_autoptr(AsApp) app_inf = NULL;
+		g_autofree gchar *tmp_fn = NULL;
+
+		fn = g_ptr_array_index (filelist, i);
+		if (as_app_guess_source_kind (fn) != AS_APP_SOURCE_KIND_INF)
+			continue;
+
+		/* get the id from the store */
+		app_inf = as_app_new ();
+		tmp_fn = g_build_filename (tmp_path, fn, NULL);
+		if (!as_app_parse_file (app_inf, tmp_fn, AS_APP_PARSE_FLAG_NONE, error))
+			return FALSE;
+		app_tmp = as_store_get_app_by_provide (store,
+						       AS_PROVIDE_KIND_FIRMWARE_FLASHED,
+						       as_app_get_id (app_inf));
+		if (app_tmp == NULL) {
+			g_set_error (error,
+				     AS_STORE_ERROR,
+				     AS_STORE_ERROR_FAILED,
+				     "no metainfo file with provide %s",
+				     as_app_get_id (app_inf));
+			return FALSE;
+		}
+
+		/* check the version matches */
+		rel_inf = as_app_get_release_default (app_inf);
+		rel_metainfo = as_app_get_release_default (app_inf);
+		if (g_strcmp0 (as_release_get_version (rel_inf),
+			       as_release_get_version (rel_metainfo)) != 0) {
+			g_set_error (error,
+				     AS_STORE_ERROR,
+				     AS_STORE_ERROR_FAILED,
+				     "metainfo version is %s while inf has %s",
+				     as_release_get_version (rel_metainfo),
+				     as_release_get_version (rel_inf));
+			return FALSE;
+		}
+
+		/* verify Firmware_CopyFiles matches */
+		if (g_strcmp0 (as_release_get_filename (rel_inf),
+			       as_release_get_filename (rel_metainfo)) != 0) {
+			g_set_error (error,
+				     AS_STORE_ERROR,
+				     AS_STORE_ERROR_FAILED,
+				     "metainfo filename is %s while inf has %s",
+				     as_release_get_filename (rel_metainfo),
+				     as_release_get_filename (rel_inf));
+			return FALSE;
+		}
 	}
 
 	/* delete temp files */
@@ -252,22 +401,6 @@ as_store_cab_from_stream (AsStore *store,
 }
 
 /**
- * as_store_cab_from_bytes:
- **/
-gboolean
-as_store_cab_from_bytes (AsStore *store,
-			 GBytes *bytes,
-			 GCancellable *cancellable,
-			 GError **error)
-{
-	g_autoptr(GInputStream) input_stream = NULL;
-	input_stream = g_memory_input_stream_new_from_bytes (bytes);
-	return as_store_cab_from_stream (store, input_stream,
-					 g_bytes_get_size (bytes),
-					 cancellable, error);
-}
-
-/**
  * as_store_cab_from_file:
  **/
 gboolean
@@ -277,6 +410,7 @@ as_store_cab_from_file (AsStore *store,
 			GError **error)
 {
 	guint64 size;
+	g_autoptr(GBytes) bytes;
 	g_autoptr(GError) error_local = NULL;
 	g_autoptr(GFileInfo) info = NULL;
 	g_autoptr(GInputStream) input_stream = NULL;
@@ -286,20 +420,6 @@ as_store_cab_from_file (AsStore *store,
 	/* set origin */
 	origin = g_file_get_basename (file);
 	as_store_set_origin (store, origin);
-
-	/* get size */
-	info = g_file_query_info (file, G_FILE_ATTRIBUTE_STANDARD_SIZE,
-				  G_FILE_QUERY_INFO_NONE, cancellable, &error_local);
-	if (info == NULL) {
-		filename = g_file_get_path (file);
-		g_set_error (error,
-			     AS_STORE_ERROR,
-			     AS_STORE_ERROR_FAILED,
-			     "Failed to get info for %s: %s",
-			     filename, error_local->message);
-		return FALSE;
-	}
-	size = g_file_info_get_attribute_uint64 (info, G_FILE_ATTRIBUTE_STANDARD_SIZE);
 
 	/* open file */
 	input_stream = G_INPUT_STREAM (g_file_read (file, cancellable, &error_local));
@@ -313,6 +433,33 @@ as_store_cab_from_file (AsStore *store,
 		return FALSE;
 	}
 
+	/* get size */
+	info = g_file_query_info (file, G_FILE_ATTRIBUTE_STANDARD_SIZE,
+				  G_FILE_QUERY_INFO_NONE, cancellable, &error_local);
+	if (info == NULL) {
+		filename = g_file_get_path (file);
+		g_set_error (error,
+			     AS_STORE_ERROR,
+			     AS_STORE_ERROR_FAILED,
+			     "Failed to get info from %s: %s",
+			     filename, error_local->message);
+		return FALSE;
+	}
+
+	/* slurp it all */
+	size = g_file_info_get_attribute_uint64 (info, G_FILE_ATTRIBUTE_STANDARD_SIZE);
+	bytes = g_input_stream_read_bytes (input_stream, size,
+					   cancellable, &error_local);
+	if (bytes == NULL) {
+		filename = g_file_get_path (file);
+		g_set_error (error,
+			     AS_STORE_ERROR,
+			     AS_STORE_ERROR_FAILED,
+			     "Failed to read %s: %s",
+			     filename, error_local->message);
+		return FALSE;
+	}
+
 	/* parse */
-	return as_store_cab_from_stream (store, input_stream, size, cancellable, error);
+	return as_store_cab_from_bytes (store, bytes, cancellable, error);
 }
