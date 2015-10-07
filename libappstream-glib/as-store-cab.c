@@ -252,18 +252,18 @@ as_store_cab_from_stream (AsStore *store,
 }
 
 /**
- * as_store_cab_from_data:
+ * as_store_cab_from_bytes:
  **/
 gboolean
-as_store_cab_from_data (AsStore *store,
-			GBytes *data,
-			GCancellable *cancellable,
-			GError **error)
+as_store_cab_from_bytes (AsStore *store,
+			 GBytes *bytes,
+			 GCancellable *cancellable,
+			 GError **error)
 {
 	g_autoptr(GInputStream) input_stream = NULL;
-	input_stream = g_memory_input_stream_new_from_bytes (data);
+	input_stream = g_memory_input_stream_new_from_bytes (bytes);
 	return as_store_cab_from_stream (store, input_stream,
-					 g_bytes_get_size (data),
+					 g_bytes_get_size (bytes),
 					 cancellable, error);
 }
 

@@ -38,7 +38,6 @@
 #include <as-release.h>
 #include <as-screenshot.h>
 #include <as-store.h>
-#include <as-store-cab.h>
 #include <as-tag.h>
 #include <as-version.h>
 #include <as-utils.h>

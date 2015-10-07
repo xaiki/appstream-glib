@@ -82,7 +82,6 @@ libappstream_glib_include_HEADERS =				\
 	as-release.h						\
 	as-screenshot.h						\
 	as-store.h						\
-	as-store-cab.h						\
 	as-tag.h						\
 	as-utils.h						\
 	as-version.h
@@ -122,6 +121,7 @@ libappstream_glib_la_SOURCES =					\
 	as-screenshot-private.h					\
 	as-store.c						\
 	as-store-cab.c						\
+	as-store-cab.h						\
 	as-tag.c						\
 	as-utils.c						\
 	as-utils-private.h					\
