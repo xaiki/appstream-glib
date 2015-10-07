@@ -37,8 +37,8 @@ gboolean	 as_store_cab_from_file		(AsStore	*store,
 						 GFile		*file,
 						 GCancellable	*cancellable,
 						 GError		**error);
-gboolean	 as_store_cab_from_fd		(AsStore	*store,
-						 int		 fd,
+gboolean	 as_store_cab_from_data		(AsStore	*store,
+						 GBytes		*bytes,
 						 GCancellable	*cancellable,
 						 GError		**error);
 

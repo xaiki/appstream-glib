@@ -252,42 +252,19 @@ as_store_cab_from_stream (AsStore *store,
 }
 
 /**
- * as_store_cab_from_fd:
+ * as_store_cab_from_data:
  **/
 gboolean
-as_store_cab_from_fd (AsStore *store,
-		      int fd,
-		      GCancellable *cancellable,
-		      GError **error)
+as_store_cab_from_data (AsStore *store,
+			GBytes *data,
+			GCancellable *cancellable,
+			GError **error)
 {
-	guint64 size = NULL;
-	g_autoptr(GError) error_local = NULL;
 	g_autoptr(GInputStream) input_stream = NULL;
-	g_autoptr(GInputStream) stream = NULL;
-
-	/* GCab needs a GSeekable input stream, so buffer to RAM then load */
-	stream = g_unix_input_stream_new (fd, TRUE);
-	input_stream = g_memory_input_stream_new ();
-	while (1) {
-		g_autoptr(GBytes) data = NULL;
-		data = g_input_stream_read_bytes (stream, 8192,
-						  cancellable,
-						  &error_local);
-		if (g_bytes_get_size (data) == 0)
-			break;
-		if (data == NULL) {
-			g_set_error_literal (error,
-					     AS_STORE_ERROR,
-					     AS_STORE_ERROR_FAILED,
-					     error_local->message);
-			return FALSE;
-		}
-		size += g_bytes_get_size (data);
-		g_memory_input_stream_add_bytes (G_MEMORY_INPUT_STREAM (input_stream), data);
-	}
-
-	/* parse */
-	return as_store_cab_from_stream (store, input_stream, size, cancellable, error);
+	input_stream = g_memory_input_stream_new_from_bytes (data);
+	return as_store_cab_from_stream (store, input_stream,
+					 g_bytes_get_size (data),
+					 cancellable, error);
 }
 
 /**

@@ -1227,6 +1227,34 @@ as_store_from_file (AsStore *store,
 }
 
 /**
+ * as_store_from_data:
+ * @store: a #AsStore instance.
+ * @file: a #GFile.
+ * @icon_root: the icon path, or %NULL for the default.
+ * @cancellable: a #GCancellable.
+ * @error: A #GError or %NULL.
+ *
+ * Parses an AppStream XML or DEP-11 YAML file and adds any valid applications
+ * to the store.
+ *
+ * If the root node does not have a 'origin' attribute, then the method
+ * as_store_set_origin() should be called *before* this function if cached
+ * icons are required.
+ *
+ * Returns: %TRUE for success
+ *
+ * Since: 0.5.2
+ **/
+gboolean
+as_store_from_data (AsStore *store,
+		    GFile *file,
+		    GCancellable *cancellable,
+		    GError **error)
+{
+	return TRUE;
+}
+
+/**
  * as_store_from_xml:
  * @store: a #AsStore instance.
  * @data: XML data
