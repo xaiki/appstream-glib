@@ -11,6 +11,9 @@ AM_CPPFLAGS =						\
 	-I$(top_builddir)/libappstream-glib		\
 	-I$(top_srcdir)/libappstream-builder		\
 	-I$(top_builddir)/libappstream-builder		\
+	-I$(top_srcdir)/contrib					\
+	-include $(top_srcdir)/contrib/glnx-backport-autocleanups.h	\
+	-include $(top_srcdir)/contrib/glnx-backport-autoptr.h	\
 	-DG_LOG_DOMAIN=\"As\"				\
 	-DVERSION="\"$(VERSION)\""			\
 	-DLOCALEDIR=\""$(localedir)"\"

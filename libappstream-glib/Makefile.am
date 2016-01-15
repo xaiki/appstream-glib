@@ -16,6 +16,9 @@ AM_CPPFLAGS =							\
 	-I$(top_srcdir)/libappstream-glib			\
 	-I$(top_builddir)/libappstream-glib			\
 	-I.							\
+	-I$(top_srcdir)/contrib					\
+	-include $(top_srcdir)/contrib/glnx-backport-autoptr.h	\
+	-include $(top_srcdir)/contrib/glnx-backport-autocleanups.h	\
 	-DAS_COMPILATION					\
 	-DTESTDIRSRC=\""$(top_srcdir)/data/tests"\"		\
 	-DTESTDIRBUILD=\""$(top_builddir)/data/tests"\"		\
