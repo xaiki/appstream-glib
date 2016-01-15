@@ -130,7 +130,7 @@ AM_CONDITIONAL(HAVE_GPERF, [test x$GPERF != xno])
 PKG_CHECK_MODULES(GLIB, glib-2.0 >= 2.42.2 gio-2.0 gobject-2.0 gthread-2.0 gio-unix-2.0 gmodule-2.0)
 PKG_CHECK_MODULES(UUID, uuid)
 PKG_CHECK_MODULES(LIBARCHIVE, libarchive)
-PKG_CHECK_MODULES(SOUP, libsoup-2.4 >= 2.51.92)
+PKG_CHECK_MODULES(SOUP, libsoup-2.4 >= 2.48.1)
 PKG_CHECK_MODULES(GDKPIXBUF, gdk-pixbuf-2.0 >= 2.31.5)
 
 # firmware support (default enabled)
