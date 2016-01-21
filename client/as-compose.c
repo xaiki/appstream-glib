@@ -438,7 +438,7 @@ main (int argc, char **argv)
 			_("Show extra debugging information"), NULL },
 		{ "prefix", '\0', 0, G_OPTION_ARG_FILENAME, &prefix,
 			/* TRANSLATORS: command line option */
-			_("Set the temporary directory"), "DIR" },
+			_("Set the prefix"), "DIR" },
 		{ "output-dir", '\0', 0, G_OPTION_ARG_FILENAME, &output_dir,
 			/* TRANSLATORS: command line option */
 			_("Set the output directory"), "DIR" },
