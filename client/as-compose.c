@@ -109,17 +109,23 @@ add_icons (AsApp *app,
 
 	icon_path = g_build_filename (icons_dir, name, NULL);
 
-	icon_subdir = g_path_get_dirname (icon_path);	
+	icon_subdir = g_path_get_dirname (icon_path);
 	if (g_mkdir_with_parents (icon_subdir, 0755)) {
 		int errsv = errno;
-		g_print ("%s: %s\n", _("Error icon output dir"), strerror (errsv));
-		return EXIT_FAILURE;
+		g_set_error (error,
+			     AS_APP_ERROR,
+			     AS_APP_ERROR_FAILED,
+			     "failed to create %s: %s",
+			     icon_subdir,
+			     strerror (errsv));
+		return FALSE;
 	}
-	
-	g_print ("saving %s\n", icon_path);
+
+	/* TRANSLATORS: we've saving the icon file to disk */
+	g_print ("%s %s\n", _("Saving icon"), icon_path);
 	if (!gdk_pixbuf_save (pixbuf, icon_path, "png", error, NULL))
 		return FALSE;
-	
+
 	/* try to get a HiDPI icon */
 	fn_hidpi = as_utils_find_icon_filename_full (prefix, key,
 						     AS_UTILS_FIND_ICON_HI_DPI,
@@ -152,14 +158,20 @@ add_icons (AsApp *app,
 	as_app_add_icon (AS_APP (app), icon_hidpi);
 
 	icon_path_hidpi = g_build_filename (icons_dir, name_hidpi, NULL);
-	icon_subdir_hidpi = g_path_get_dirname (icon_path_hidpi);	
+	icon_subdir_hidpi = g_path_get_dirname (icon_path_hidpi);
 	if (g_mkdir_with_parents (icon_subdir_hidpi, 0755)) {
 		int errsv = errno;
-		g_print ("%s: %s\n", _("Error icon output dir"), strerror (errsv));
-		return EXIT_FAILURE;
+		g_set_error (error,
+			     AS_APP_ERROR,
+			     AS_APP_ERROR_FAILED,
+			     "failed to create %s: %s",
+			     icon_subdir_hidpi,
+			     strerror (errsv));
+		return FALSE;
 	}
-	
-	g_print ("saving %s\n", icon_path_hidpi);
+
+	/* TRANSLATORS: we've saving the icon file to disk */
+	g_print ("%s %s\n", _("Saving icon"), icon_path_hidpi);
 	if (!gdk_pixbuf_save (pixbuf_hidpi, icon_path_hidpi, "png", error, NULL))
 		return FALSE;
 	return TRUE;
@@ -173,26 +185,23 @@ load_desktop (const gchar *prefix,
 	      const gchar *appdata_id,
 	      GError **error)
 {
-	g_autofree char *desktop_basename = NULL;
-	g_autofree char *desktop_path = NULL;
-	g_autoptr(AsApp) app = NULL;
 	AsIcon *icon;
+	g_autofree gchar *desktop_basename = NULL;
+	g_autofree gchar *desktop_path = NULL;
+	g_autoptr(AsApp) app = NULL;
 
 	if (appdata_id != NULL)
 		desktop_basename = g_strdup (appdata_id);
 	else
 		desktop_basename = g_strconcat (app_name, ".desktop", NULL);
-	
 	desktop_path = g_build_filename (prefix, "share/applications", desktop_basename, NULL);
 
 	app = as_app_new ();
-
 	if (!as_app_parse_file (app, desktop_path,
 				AS_APP_PARSE_FLAG_USE_HEURISTICS |
 				AS_APP_PARSE_FLAG_ALLOW_VETO,
 				error))
 		return NULL;
-
 	if (as_app_get_id_kind (app) == AS_ID_KIND_UNKNOWN) {
 		g_set_error (error,
 			     AS_APP_ERROR,
@@ -215,42 +224,45 @@ load_desktop (const gchar *prefix,
 
 			g_ptr_array_set_size (as_app_get_icons (AS_APP (app)), 0);
 			ret = add_icons (app,
-					 icons_dir, min_icon_size,
+					 icons_dir,
+					 min_icon_size,
 					 prefix,
 					 key,
-					 &error_local);
-			if (!ret) {
-				as_app_add_veto (AS_APP (app), "%s",
-						 error_local->message);
-			}
+					 error);
+			if (!ret)
+				return NULL;
 		}
 	}
 
-	
 	return g_steal_pointer (&app);
 }
 
 static AsApp *
 load_appdata (const gchar *prefix, const gchar *app_name, GError **error)
 {
-	g_autofree char *appdata_basename = g_strconcat (app_name, ".appdata.xml", NULL);
-	g_autofree char *appdata_path = g_build_filename (prefix, "share/appdata", appdata_basename, NULL);
+	g_autofree gchar *appdata_basename = NULL;
+	g_autofree gchar *appdata_path = NULL;
 	g_autoptr(AsApp) app = NULL;
 	g_autoptr(GPtrArray) problems = NULL;
 	AsProblemKind problem_kind;
 	AsProblem *problem;
-	const gchar *tmp;
 	guint i;
 
-	g_debug ("Looking for %s\n", appdata_path);
+	appdata_basename = g_strconcat (app_name,
+					".appdata.xml",
+					NULL);
+	appdata_path = g_build_filename (prefix,
+					 "share",
+					 "appdata",
+					 appdata_basename,
+					 NULL);
+	g_debug ("Looking for %s", appdata_path);
 
 	app = as_app_new ();
-
 	if (!as_app_parse_file (app, appdata_path,
 				AS_APP_PARSE_FLAG_NONE,
 				error))
 		return NULL;
-
 	if (as_app_get_id_kind (app) == AS_ID_KIND_UNKNOWN) {
 		g_set_error (error,
 			     AS_APP_ERROR,
@@ -274,36 +286,13 @@ load_appdata (const gchar *prefix, const gchar *app_name, GError **error)
 				    as_problem_kind_to_string (problem_kind),
 				    as_problem_get_message (problem));
 	}
-
-	/* check license */
-	tmp = as_app_get_metadata_license (app);
-	if (tmp == NULL) {
+	if (problems->len > 0) {
 		g_set_error (error,
 			     AS_APP_ERROR,
 			     AS_APP_ERROR_FAILED,
-			     "AppData %s has no licence",
+			     "AppData file %s was not valid",
 			     appdata_path);
 		return NULL;
-	}
-	if (!as_utils_is_spdx_license (tmp)) {
-		g_set_error (error,
-			     AS_APP_ERROR,
-			     AS_APP_ERROR_FAILED,
-			     "AppData %s license '%s' invalid",
-			     appdata_path, tmp);
-		return NULL;
-	}
-	
-
-	/* check project group */
-	tmp = as_app_get_project_group (app);
-	if (tmp != NULL) {
-		if (!as_utils_is_environment_id (tmp)) {
-			as_compose_app_log (app,
-					    "AppData project group invalid, "
-					    "so ignoring: %s", tmp);
-			as_app_set_project_group (AS_APP (app), NULL);
-		}
 	}
 
 	return g_steal_pointer (&app);
@@ -385,13 +374,12 @@ main (int argc, char **argv)
 		output_dir = g_build_filename (prefix, "share/app-info/xmls", NULL);
 	if (icons_dir == NULL)
 		icons_dir = g_build_filename (prefix, "share/app-info/icons", origin, NULL);
-	if (basename == NULL)
-		basename = g_strdup (origin);
 	if (origin == NULL) {
 		g_print ("WARNING: Metadata origin not set, using 'example'\n");
 		origin = g_strdup ("example");
 	}
-
+	if (basename == NULL)
+		basename = g_strdup (origin);
 
 	if (argc == 1) {
 		g_autofree gchar *tmp = NULL;
@@ -401,58 +389,74 @@ main (int argc, char **argv)
 	}
 
 	store = as_store_new ();
-	as_store_set_api_version (store, 0.8);
+	as_store_set_api_version (store, api_version);
 	as_store_set_origin (store, origin);
-	
+
+	/* load each application specified */
 	for (i = 1; i < (guint) argc; i++) {
-		const char *app_name = argv[i];
-		g_autoptr(AsApp) app = NULL;
-		g_autoptr(AsApp) desktop_app = NULL;
+		const gchar *app_name = argv[i];
+		g_autoptr(AsApp) app_appdata = NULL;
+		g_autoptr(AsApp) app_desktop = NULL;
 
-		g_print ("processing %s\n", app_name);
+		/* TRANSLATORS: we're generating the AppStream data */
+		g_print ("%s %s\n", _("Processing application"), app_name);
 
-		app = load_appdata (prefix, app_name, &error);
-		if (app == NULL) {
-			g_print ("%s: %s\n", _("Error loading appdata"), error->message);
+		app_appdata = load_appdata (prefix, app_name, &error);
+		if (app_appdata == NULL) {
+			/* TRANSLATORS: the .appdata.xml file could not
+			 * be loaded */
+			g_print ("%s: %s\n", _("Error loading AppData file"),
+				 error->message);
 			return EXIT_FAILURE;
 		}
+		as_store_add_app (store, app_appdata);
 
-		desktop_app = load_desktop (prefix, icons_dir, min_icon_size,
-					    app_name, as_app_get_id (app), &error);
-		if (desktop_app == NULL) {
-			g_print ("%s: %s\n", _("Error loading desktop file"), error->message);
+		app_desktop = load_desktop (prefix,
+					    icons_dir,
+					    min_icon_size,
+					    app_name,
+					    as_app_get_id (app_appdata),
+					    &error);
+		if (app_desktop == NULL) {
+			/* TRANSLATORS: the .desktop file could not
+			 * be loaded */
+			g_print ("%s: %s\n", _("Error loading desktop file"),
+				 error->message);
 			return EXIT_FAILURE;
 		}
-
-		/* copy all metadata */
-		as_app_subsume_full (app, desktop_app,
-				     AS_APP_SUBSUME_FLAG_NO_OVERWRITE);
-
-		as_store_add_app (store, app);
+		as_store_add_app (store, app_desktop);
 	}
 
+	/* create output directory */
 	if (g_mkdir_with_parents (output_dir, 0755)) {
 		int errsv = errno;
-		g_print ("%s: %s\n", _("Error creating output dir"), strerror (errsv));
+		g_print ("%s: %s\n",
+			 /* TRANSLATORS: this is when the folder could
+			  * not be created */
+			 _("Error creating output directory"),
+			 strerror (errsv));
 		return EXIT_FAILURE;
 	}
-	
+
 	xml_dir = g_file_new_for_path (output_dir);
 	xml_basename = g_strconcat (basename, ".xml.gz", NULL);
 	xml_file = g_file_get_child (xml_dir, xml_basename);
-	g_print ("saving to %s\n", g_file_get_path (xml_file));
+	/* TRANSLATORS: we've saving the XML file to disk */
+	g_print ("%s %s\n", _("Saving AppStream"),
+		 g_file_get_path (xml_file));
 	if (!as_store_to_file (store,
 			       xml_file,
 			       AS_NODE_TO_XML_FLAG_FORMAT_MULTILINE |
 			       AS_NODE_TO_XML_FLAG_FORMAT_INDENT |
 			       AS_NODE_TO_XML_FLAG_ADD_HEADER,
 			       NULL, &error)) {
-			g_print ("%s: %s\n", _("Error saving appstream"), error->message);
-			return EXIT_FAILURE;
+		/* TRANSLATORS: this is when the destination file
+		 * cannot be saved for some reason */
+		g_print ("%s: %s\n", _("Error saving AppStream file"),
+			 error->message);
+		return EXIT_FAILURE;
 	}
 
-	
-	/* success */
 	/* TRANSLATORS: information message */
 	g_print ("%s\n", _("Done!"));
 
