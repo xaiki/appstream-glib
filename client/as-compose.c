@@ -395,6 +395,9 @@ main (int argc, char **argv)
 	/* load each application specified */
 	for (i = 1; i < (guint) argc; i++) {
 		const gchar *app_name = argv[i];
+		const gchar *gettext_domain;
+		g_auto(GStrv) intl_domains = NULL;
+		g_autofree gchar *locale_path = NULL;
 		g_autoptr(AsApp) app_appdata = NULL;
 		g_autoptr(AsApp) app_desktop = NULL;
 
@@ -409,6 +412,29 @@ main (int argc, char **argv)
 				 error->message);
 			return EXIT_FAILURE;
 		}
+
+		/* set translations: FIXME add to specification */
+		gettext_domain = as_app_get_metadata_item (app_appdata,
+							   "X-Gettext-Domain");
+		if (gettext_domain != NULL) {
+			locale_path = g_build_filename (prefix,
+							"share",
+							"locale",
+							NULL);
+			intl_domains = g_strsplit (gettext_domain, ",", -1);
+			if (!as_app_gettext_search_path (app_appdata,
+							 locale_path,
+							 intl_domains,
+							 25,
+							 NULL,
+							 &error)) {
+				/* TRANSLATORS: the .mo files could not be parsed */
+				g_print ("%s: %s\n", _("Error parsing translations"),
+					 error->message);
+				return EXIT_FAILURE;
+			}
+		}
+
 		as_store_add_app (store, app_appdata);
 
 		app_desktop = load_desktop (prefix,
