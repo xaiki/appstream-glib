@@ -1,6 +1,5 @@
 usr/bin/appstream-compose
 usr/bin/appstream-util
-usr/bin/appstream-builder
 usr/share/aclocal/*
 usr/share/bash-completion/*
 usr/share/locale/*
