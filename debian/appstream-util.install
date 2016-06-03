@@ -3,4 +3,5 @@ usr/bin/appstream-util
 usr/share/aclocal/*
 usr/share/bash-completion/completions/appstream-util
 usr/share/locale/*
-usr/share/man/*
+usr/share/man/*/appstream-compose*
+usr/share/man/*/appstream-util*
