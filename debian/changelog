@@ -1,8 +1,9 @@
 appstream-glib (0.5.15-1) unstable; urgency=medium
 
   * New Upstream Release
+  * Add appstream-builder and libappstream-builder* packages
 
- -- Niv Sardi <xaiki@evilgiggle.com>  Fri, 03 Jun 2016 09:43:37 -0300
+ -- Niv Sardi <xaiki@debian.org>  Fri, 03 Jun 2016 09:43:37 -0300
 
 appstream-glib (0.5.14-3) unstable; urgency=medium
 
