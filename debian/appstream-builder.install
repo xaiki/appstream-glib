@@ -1,0 +1,3 @@
+usr/bin/appstream-builder
+usr/share/man/man1/appstream-builder.1
+usr/share/bash-completion/completions/appstream-builder

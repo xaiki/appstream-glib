@@ -1,0 +1,4 @@
+usr/include/libappstream-builder/*
+usr/lib/*/libappstream-builder.so
+usr/lib/*/pkgconfig/appstream-builder.pc
+

@@ -113,3 +113,41 @@ Description: Transitional dummy package (appdata-tools -> appstream-util)
  appstream-util.
  .
  It can safely be removed.
+
+Package: appstream-builder
+Architecture: any
+Depends: ${misc:Depends},
+         ${shlibs:Depends}
+Description: Utility to generate AppStreams
+ AppStream is a cross-distribution effort for creating and sharing
+ metadata about software components available in the package repositories
+ of a distribution.
+ .
+ This package provides an utility to generate AppStreams
+
+Package: libappstream-builder-dev
+Architecture: any
+Section: libdevel
+Depends: libappstream-glib8 (= ${binary:Version}),
+         ${misc:Depends}
+Description: GNOME library to access AppStream services (development files)
+ AppStream is a cross-distribution effort for creating and sharing
+ metadata about software components available in the package repositories
+ of a distribution.
+ .
+ This package contains development files necessary to develop
+ tools which use the libappstream-builder library.
+
+Package: libappstream-builder8
+Architecture: any
+Section: libs
+Multi-Arch: same
+Pre-Depends: ${misc:Pre-Depends}
+Depends: ${misc:Depends},
+         ${shlibs:Depends}
+Description: GNOME library to access AppStream services
+ AppStream is a cross-distribution effort for creating and sharing
+ metadata about software components available in the package repositories
+ of a distribution.
+ .
+ This is the shared library exposed by libappstream-builder
