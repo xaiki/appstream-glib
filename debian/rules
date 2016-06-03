@@ -3,7 +3,6 @@
 #export DH_VERBOSE=1
 
 AS_CONFIGURE_ARGS = --disable-silent-rules \
-		--disable-builder \
 		--disable-rpm \
 		--disable-ostree \
 		--enable-dep11 \
