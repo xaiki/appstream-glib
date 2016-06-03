@@ -1,0 +1,151 @@
+appstream-glib (0.5.15-1) unstable; urgency=medium
+
+  * New Upstream Release
+
+ -- Niv Sardi <xaiki@evilgiggle.com>  Fri, 03 Jun 2016 09:43:37 -0300
+
+appstream-glib (0.5.14-3) unstable; urgency=medium
+
+  * Update yaml-icon-spec-compliant.patch to correctly set icon prefixes
+
+ -- Matthias Klumpp <mak@debian.org>  Sat, 30 Apr 2016 10:18:42 +0200
+
+appstream-glib (0.5.14-2) unstable; urgency=medium
+
+  * yaml-icon-spec-compliant.patch: Correctly implement the DEP-11 YAML
+    specification for icons (LP: #1576780).
+
+ -- Matthias Klumpp <mak@debian.org>  Fri, 29 Apr 2016 18:22:54 +0200
+
+appstream-glib (0.5.14-1) unstable; urgency=medium
+
+  * New upstream release: 0.5.14
+  * Drop all patches: Applied upstream
+  * Update .symbols file
+  * Use secure Vcs-* URLs
+
+ -- Matthias Klumpp <mak@debian.org>  Mon, 25 Apr 2016 17:36:46 +0200
+
+appstream-glib (0.5.13-1) unstable; urgency=medium
+
+  * New upstream release: 0.5.13
+  * xappstreamignore.patch: Support the X-AppStream-Ignore field
+    in .desktop files
+  * Add build dependency: libjson-glib-dev
+  * Update symbols file
+
+ -- Matthias Klumpp <mak@debian.org>  Wed, 06 Apr 2016 14:09:09 +0200
+
+appstream-glib (0.5.10-2) unstable; urgency=medium
+
+  * fix-parameter-order.patch:
+    - Fix loading of AppStream metadata
+  * support-mediabaseurl.patch:
+    - Implement DEP-11 MediaBaseUrl support (Closes: #808993)
+
+ -- Matthias Klumpp <mak@debian.org>  Fri, 04 Mar 2016 20:06:26 +0100
+
+appstream-glib (0.5.10-1) unstable; urgency=medium
+
+  * New upstream release: 0.5.10
+  * Update symbols file
+
+ -- Matthias Klumpp <mak@debian.org>  Sun, 28 Feb 2016 18:28:42 +0100
+
+appstream-glib (0.5.8-1) unstable; urgency=medium
+
+  * New upstream release: 0.5.8
+  * Update symbols file
+
+ -- Matthias Klumpp <mak@debian.org>  Thu, 04 Feb 2016 14:49:35 +0100
+
+appstream-glib (0.5.5-1) unstable; urgency=medium
+
+  * New upstream release: 0.5.5
+  * Update package descriptions
+  * Update symbols file
+
+ -- Matthias Klumpp <mak@debian.org>  Thu, 17 Dec 2015 08:20:14 +0100
+
+appstream-glib (0.5.4-1) unstable; urgency=medium
+
+  * New upstream release: 0.5.4
+  * Drop patches: Applied upstream
+  * Update symbols file
+
+ -- Matthias Klumpp <mak@debian.org>  Fri, 04 Dec 2015 16:44:18 +0100
+
+appstream-glib (0.5.2-2) unstable; urgency=medium
+
+  * libappstream-glib-dev: Requires libgcab to be installed now
+
+ -- Matthias Klumpp <mak@debian.org>  Thu, 05 Nov 2015 19:24:12 +0100
+
+appstream-glib (0.5.2-1) unstable; urgency=medium
+
+  * New upstream release: 0.5.2
+    - Closes: #803327
+  * Tighten dependency on GLib
+  * 01_Strip-paths-when-decompressing-fw.patch: Fix firmware update support
+  * Drop 01_fix-dep11.patch: Applied upstream
+  * Add build-dependency on libgcab-dev to enable firmware support
+
+ -- Matthias Klumpp <mak@debian.org>  Mon, 02 Nov 2015 18:26:34 +0100
+
+appstream-glib (0.5.1-1) unstable; urgency=medium
+
+  * New upstream release: 0.5.1
+  * 01_fix-dep11.patch: Make asglib process DEP-11 data again
+  * Drop appdata-validate: Nobody should use it anymore
+  * Disable tests
+
+ -- Matthias Klumpp <mak@debian.org>  Wed, 14 Oct 2015 18:56:58 +0200
+
+appstream-glib (0.4.1-1) unstable; urgency=medium
+
+  * New upstream bugfix release: 0.4.1
+    - Closes: #791860
+  * Add dependency on libarchive-dev to libappstream-glib-dev
+    (Closes: #789578)
+  * Drop patches: Applied upstream
+  * Update symbols file
+
+ -- Matthias Klumpp <mak@debian.org>  Mon, 20 Jul 2015 20:12:02 +0200
+
+appstream-glib (0.4.0-1) unstable; urgency=medium
+
+  * Upload to unstable
+  * New upstream release: 0.4.0
+    - Closes: #787590
+  * Drop unneeded build dependencies
+  * Enable unittests and autoreconf again
+  * Fix autogen run with current intltool
+  * Add symbols file for appstream-glib
+
+ -- Matthias Klumpp <mak@debian.org>  Fri, 05 Jun 2015 14:20:32 +0200
+
+appstream-glib (0.3.4-1) experimental; urgency=medium
+
+  * New upstream unstable release: 0.3.4
+  * Make appstream-util break appdata-tools (Closes: #768269)
+
+ -- Matthias Klumpp <mak@debian.org>  Tue, 03 Feb 2015 20:38:42 +0100
+
+appstream-glib (0.3.2-2) experimental; urgency=medium
+
+  * Provide appdata-tools transitional package (Closes: #768269)
+    - Thanks to Iain Lane for the patch!
+
+ -- Matthias Klumpp <mak@debian.org>  Sun, 01 Feb 2015 16:32:10 +0100
+
+appstream-glib (0.3.2-1) unstable; urgency=medium
+
+  * New upstream unstable release: 0.3.2
+
+ -- Matthias Klumpp <mak@debian.org>  Tue, 04 Nov 2014 18:17:58 +0100
+
+appstream-glib (0.3.0-1) unstable; urgency=medium
+
+  * Initial release (Closes: #752900)
+
+ -- Matthias Klumpp <mak@debian.org>  Tue, 23 Sep 2014 16:50:18 +0200

@@ -1,0 +1,34 @@
+#!/usr/bin/make -f
+# -*- makefile -*-
+#export DH_VERBOSE=1
+
+AS_CONFIGURE_ARGS = --disable-silent-rules \
+		--disable-builder \
+		--disable-rpm \
+		--disable-ostree \
+		--enable-dep11 \
+		--enable-firmware \
+		--enable-gtk-doc
+
+# Define install target dir
+INSTALLDIR = $(CURDIR)/debian/tmp
+
+%:
+	dh $@ --with autoreconf
+
+override_dh_auto_configure:
+	dh_auto_configure -- $(AS_CONFIGURE_ARGS)
+
+override_dh_auto_install:
+	dh_auto_install --destdir=$(INSTALLDIR)
+
+	rm -f $(INSTALLDIR)/usr/lib/$(DEB_HOST_MULTIARCH)/*.a
+	rm -f $(INSTALLDIR)/usr/lib/$(DEB_HOST_MULTIARCH)/*.la
+
+override_dh_install:
+	dh_install --list-missing
+
+override_dh_auto_test:
+	# DISABLED
+	# Tests currently fail with `dconf-CRITICAL **: unable to create directory '/run/user/1000/dconf': Permission denied.`
+	# on some machines - needs to be investigated.

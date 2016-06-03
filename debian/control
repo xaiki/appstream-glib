@@ -1,0 +1,115 @@
+Source: appstream-glib
+Section: admin
+Priority: optional
+Maintainer: Matthias Klumpp <mak@debian.org>
+Build-Depends: debhelper (>= 9.0.0),
+               dh-autoreconf (>= 4),
+               gtk-doc-tools,
+               intltool,
+               libarchive-dev,
+               libgcab-dev (>= 0.6),
+               libgdk-pixbuf2.0-dev,
+               libgirepository1.0-dev (>= 1.32),
+               libglib2.0-dev (>= 2.46),
+               libgtk-3-dev,
+               libjson-glib-dev,
+               libsoup2.4-dev (>= 2.52),
+               libsqlite3-dev,
+               libyaml-dev,
+               uuid-dev,
+               xmlto
+Standards-Version: 3.9.8
+Homepage: http://people.freedesktop.org/~hughsient/appstream-glib/
+Vcs-Git: https://anonscm.debian.org/git/pkg-packagekit/appstream-glib.git
+Vcs-Browser: https://anonscm.debian.org/cgit/pkg-packagekit/appstream-glib.git
+
+Package: appstream-util
+Architecture: any
+Depends: ${misc:Depends},
+         ${shlibs:Depends}
+Replaces: appdata-tools (<< 0.3.4)
+Breaks: appdata-tools (<< 0.3.4)
+Description: Utility to work with AppStream metadata
+ AppStream is a cross-distribution effort for creating and sharing
+ metadata about software components available in the package repositories
+ of a distribution.
+ .
+ This package provides an utility to work with AppStream metadata, which uses
+ libappstream-glib.
+ .
+ It also contains Autotools macros to easily integrate AppStream metadata into
+ an Autotools-based buildsystem, by running 'appstream-util' to validate the
+ files before installing them.
+
+Package: libappstream-glib8
+Architecture: any
+Section: libs
+Multi-Arch: same
+Pre-Depends: ${misc:Pre-Depends}
+Depends: ${misc:Depends},
+         ${shlibs:Depends}
+Description: GNOME library to access AppStream services
+ AppStream is a cross-distribution effort for creating and sharing
+ metadata about software components available in the package repositories
+ of a distribution.
+ .
+ This package contains a GObject-based library to read and write AppStream
+ XML metadata and retrieve additional data such as screenshots.
+ .
+ As opposed to libappstream, this library does not use an on-disk cache but
+ reads data directly from the XML or DEP-11 YAML files.
+
+Package: libappstream-glib-dev
+Architecture: any
+Section: libdevel
+Depends: libappstream-glib8 (= ${binary:Version}),
+         libarchive-dev,
+         libgcab-dev (>= 0.6),
+         libgdk-pixbuf2.0-dev,
+         libglib2.0-dev (>= 2.40),
+         uuid-dev,
+         ${misc:Depends}
+Description: GNOME library to access AppStream services (development files)
+ AppStream is a cross-distribution effort for creating and sharing
+ metadata about software components available in the package repositories
+ of a distribution.
+ .
+ This package contains development files necessary to develop
+ tools which use the libappstream-glib library.
+
+Package: gir1.2-appstreamglib-1.0
+Section: introspection
+Architecture: any
+Depends: ${gir:Depends},
+         ${misc:Depends}
+Description: GObject introspection data for the libappstream-glib library
+ AppStream is a cross-distribution effort for creating and sharing
+ metadata about software components available in the package repositories
+ of a distribution.
+ .
+ This package contains introspection data for the libappstream-glib library.
+
+Package: appstream-glib-doc
+Architecture: all
+Section: doc
+Depends: ${misc:Depends}
+Suggests: libappstream-glib-dev
+Description: Developer documentation for the libappstream-glib library
+ AppStream is a cross-distribution effort for creating and sharing
+ metadata about software components available in the package repositories
+ of a distribution.
+ .
+ This package provides developer documentation for the
+ libappstream-glib library.
+
+Package: appdata-tools
+Architecture: all
+Section: oldlibs
+Priority: extra
+Depends: appstream-util,
+         ${misc:Depends}
+Description: Transitional dummy package (appdata-tools -> appstream-util)
+ This is a transitional package to ease upgrades from appdata-tools to
+ appstream-util.
+ .
+ It can safely be removed.
