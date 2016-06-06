@@ -189,7 +189,7 @@ main (int argc, char **argv)
 	/* this really ought to be set */
 	if (basename == NULL) {
 		g_print ("WARNING: Metadata basename not set, using 'appstream'\n");
-		basename = g_strdup ("example");
+		basename = g_strdup ("appstream");
 	}
 	if (origin == NULL) {
 		g_print ("WARNING: Metadata origin not set, using 'example'\n");
